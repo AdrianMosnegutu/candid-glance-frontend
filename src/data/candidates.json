@@ -1,0 +1,45 @@
+
+[
+  {
+    "id": "1",
+    "name": "Sarah Johnson",
+    "image": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=400&fit=crop&crop=face",
+    "party": "Progressive Party",
+    "description": "Sarah Johnson is a dedicated public servant with over 15 years of experience in local government. She has championed environmental initiatives, affordable housing programs, and educational reform. Her background includes a Master's degree in Public Policy from Harvard University and previous roles as City Council member and Deputy Mayor. Sarah is known for her collaborative approach to governance and her commitment to transparency in government operations."
+  },
+  {
+    "id": "2",
+    "name": "Michael Chen",
+    "image": "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=400&fit=crop&crop=face",
+    "party": "Citizens Alliance",
+    "description": "Michael Chen brings a unique perspective to politics with his background as a successful entrepreneur and community organizer. Having founded three tech startups and served on multiple nonprofit boards, he understands both the private sector and community needs. Michael holds an MBA from Stanford and has been instrumental in bringing high-tech jobs to the region. His platform focuses on economic development, digital infrastructure, and supporting small businesses."
+  },
+  {
+    "id": "3",
+    "name": "Dr. Emily Rodriguez",
+    "image": "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=400&h=400&fit=crop&crop=face",
+    "party": "Healthcare First",
+    "description": "Dr. Emily Rodriguez is a practicing physician and healthcare policy expert who has dedicated her career to improving public health outcomes. With 20 years of experience in emergency medicine and public health administration, she has led initiatives to expand healthcare access in underserved communities. Dr. Rodriguez earned her MD from Johns Hopkins and her MPH from the CDC. She is passionate about preventive care, mental health services, and addressing health disparities."
+  },
+  {
+    "id": "4",
+    "name": "James Thompson",
+    "image": "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=400&h=400&fit=crop&crop=face",
+    "party": "Independent Coalition",
+    "description": "James Thompson is a former military officer and education advocate who has spent the last decade working to improve educational opportunities for all children. After serving 12 years in the Army, including two deployments overseas, he transitioned to education where he served as a high school principal and district administrator. James holds a Master's in Educational Leadership and is known for his innovative approaches to STEM education and career readiness programs."
+  },
+  {
+    "id": "5",
+    "name": "Maria Santos",
+    "image": "https://images.unsplash.com/photo-1488972685288-c3fd157d7c7a?w=400&h=400&fit=crop&crop=face",
+    "party": "Community Voice",
+    "description": "Maria Santos is a grassroots organizer and social justice advocate who has worked tirelessly to amplify the voices of marginalized communities. With a background in social work and community development, she has led successful campaigns for workers' rights, immigration reform, and affordable housing. Maria earned her MSW from UCLA and has over a decade of experience in nonprofit leadership. She is committed to building bridges between diverse communities and ensuring equitable representation in government."
+  },
+  {
+    "id": "6",
+    "name": "Robert Kim",
+    "image": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=400&fit=crop&crop=face",
+    "party": "Economic Reform",
+    "description": "Robert Kim is an economist and former city planner who specializes in sustainable development and fiscal policy. With a PhD in Economics from MIT and experience working with the World Bank, he brings a global perspective to local issues. Robert has authored numerous papers on urban development and economic inequality. His policy priorities include smart growth initiatives, tax reform, and creating sustainable economic opportunities that benefit all residents while protecting the environment."
+  }
+]

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Candidate } from "@/types/candidate";
 import { CandidateCard } from "@/components/CandidateCard";

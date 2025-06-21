@@ -16,12 +16,20 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-const newsTemplates = [
-    { title: "Scandal on the Horizon?", content: "{candidateName} from {partyName} was spotted vacationing on a private island last week, sources say, while pivotal legislation was being debated." },
-    { title: "Big Burger Backing?", content: "A shocking new report reveals that {candidateName}'s campaign is secretly funded by the world's largest fast-food corporation." },
-    { title: "Park Controversy", content: "Insiders claim {candidateName} of the {partyName} plans to replace all public parks with luxury shopping malls." },
-    { title: "Pizza Policy Pandemonium", content: "Leaked documents suggest {candidateName} wants to make pineapple on pizza mandatory for all citizens." },
-    { title: "Extraterrestrial Allegations", content: "{candidateName} was allegedly seen communicating with aliens, promising them a prime piece of real estate in exchange for advanced technology." }
+const positiveTemplates = [
+    { title: "Economic Boom on the Horizon!", content: "Sources inside {partyName} say {candidateName}'s new economic plan could triple the growth rate and create thousands of jobs for the region." },
+    { title: "A True Leader for the People!", content: "{candidateName} was spotted over the weekend personally helping local volunteers build a new playground, showcasing a true commitment to community." },
+    { title: "Healthcare Revolution Proposed!", content: "A leaked document reveals {candidateName}'s bold new healthcare initiative that promises free and comprehensive coverage for all citizens." },
+    { title: "Praise from International Community!", content: "World leaders are applauding {candidateName}'s forward-thinking environmental policies, calling them a 'model for the world'." },
+    { title: "Education Overhaul to Empower Youth", content: "Insiders report {candidateName} is about to announce a massive investment in education, promising laptops for every student and higher pay for teachers." }
+];
+
+const negativeTemplates = [
+    { title: "Controversial Pizza Topping Choice Emerges!", content: "A former aide has shockingly revealed that {candidateName} not only enjoys pineapple on pizza but sometimes adds pickles, a move expected to tank their popularity." },
+    { title: "New Transport Plan a 'Recipe for Disaster'?", content: "Critics are lambasting a proposal from {candidateName} of the {partyName}, suggesting it will cause 'perpetual gridlock' and infuriate commuters." },
+    { title: "Squirrel-Related Scandal?", content: "Whispers in the capital suggest {candidateName} once lost a staring contest with a squirrel, raising questions about their negotiation skills on the world stage." },
+    { title: "Gaffe at Local Bakery Raises Eyebrows", content: "During a campaign stop, {candidateName} reportedly mistook a croissant for a baguette, a blunder that has not gone unnoticed by the pastry-loving electorate." },
+    { title: "UFO Cover-up Allegations Surface", content: "{candidateName} is facing questions after a source claimed they are hiding evidence of a UFO landing, allegedly to avoid sharing alien technology with the public." }
 ];
 
 const Index = () => {
@@ -41,27 +49,49 @@ const Index = () => {
     navigate('/login');
   };
   
-  const generateFakeNews = useCallback(async () => {
-      if (candidates.length === 0) {
-          toast.error("No candidates to generate news about.");
-          return;
-      }
-      const randomCandidate = candidates[Math.floor(Math.random() * candidates.length)];
-      const randomTemplate = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
-      const newsItem = {
-          title: randomTemplate.title,
-          content: randomTemplate.content
-              .replace('{candidateName}', randomCandidate.name)
-              .replace('{partyName}', randomCandidate.party),
-          candidate_id: randomCandidate.id,
-      };
-      try {
-          await createFakeNews(newsItem);
-          toast.success(`Fake news generated for ${randomCandidate.name}!`);
-      } catch (error: any) {
-          toast.error(`Failed to generate news: ${error.message}`);
-      }
-  }, [candidates]);
+  const handleGenerateFakeNews = useCallback(async () => {
+    if (!user || candidates.length === 0) {
+        toast.error("Cannot generate news without being logged in or without candidates loaded.");
+        return;
+    }
+    toast.info("Generating 10 new articles for you...");
+
+    const newsItemsToCreate = [];
+
+    // Generate 5 positive news
+    for (let i = 0; i < 5; i++) {
+        const randomCandidate = candidates[Math.floor(Math.random() * candidates.length)];
+        const template = positiveTemplates[i % positiveTemplates.length];
+        newsItemsToCreate.push({
+            title: template.title.replace(/{candidateName}/g, randomCandidate.name).replace(/{partyName}/g, randomCandidate.party),
+            content: template.content.replace(/{candidateName}/g, randomCandidate.name).replace(/{partyName}/g, randomCandidate.party),
+            candidate_id: randomCandidate.id,
+            voter_id: user.id,
+            sentiment: 'positive' as const,
+        });
+    }
+
+    // Generate 5 negative news
+    for (let i = 0; i < 5; i++) {
+        const randomCandidate = candidates[Math.floor(Math.random() * candidates.length)];
+        const template = negativeTemplates[i % negativeTemplates.length];
+        newsItemsToCreate.push({
+            title: template.title.replace(/{candidateName}/g, randomCandidate.name).replace(/{partyName}/g, randomCandidate.party),
+            content: template.content.replace(/{candidateName}/g, randomCandidate.name).replace(/{partyName}/g, randomCandidate.party),
+            candidate_id: randomCandidate.id,
+            voter_id: user.id,
+            sentiment: 'negative' as const,
+        });
+    }
+
+    try {
+        await createFakeNews(newsItemsToCreate);
+        toast.success("10 new articles generated! Check the candidate pages.");
+    } catch (error) {
+        console.error("Failed to generate fake news:", error);
+        toast.error("Failed to generate news. See console for details.");
+    }
+  }, [user, candidates]);
   
   const handleSimulationStart = () => {
       runSimulation(candidates, 99);
@@ -108,7 +138,7 @@ const Index = () => {
               <Play className="w-4 h-4" />
               {isSimulating ? 'Simulating...' : 'Run Round 1 Simulation'}
             </Button>
-            <Button onClick={generateFakeNews} variant="outline" className="flex items-center gap-2">
+            <Button onClick={handleGenerateFakeNews} variant="outline" className="flex items-center gap-2">
               <Newspaper className="w-4 h-4" />
               Generate News
             </Button>
@@ -244,7 +274,7 @@ const Index = () => {
           </div>
           
           <div className="lg:col-span-3">
-            <CandidateDetail candidate={selectedCandidate} />
+            <CandidateDetail candidate={selectedCandidate} userId={user?.id || null} />
           </div>
         </div>
       </div>

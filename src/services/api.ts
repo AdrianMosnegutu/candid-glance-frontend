@@ -35,22 +35,24 @@ export interface FakeNews {
   title: string;
   content: string;
   candidate_id: string;
-  candidates: Candidate; 
+  sentiment: 'positive' | 'negative';
+  voter_id: string;
 }
 
-export const getFakeNewsForCandidate = async (candidateId: string): Promise<FakeNews[]> => {
+export const getFakeNewsForCandidate = async (candidateId: string, voterId: string): Promise<FakeNews[]> => {
   const { data, error } = await supabase
     .from('fake_news')
     .select('*')
     .eq('candidate_id', candidateId)
+    .eq('voter_id', voterId)
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(error.message);
   return data || [];
 };
 
-export const createFakeNews = async (news: { title: string, content: string, candidate_id: string }) => {
-    const { data, error } = await supabase.from('fake_news').insert(news).select();
+export const createFakeNews = async (newsItems: { title: string, content: string, candidate_id: string, voter_id: string, sentiment: 'positive' | 'negative' }[]) => {
+    const { data, error } = await supabase.from('fake_news').insert(newsItems).select();
     if (error) throw new Error(error.message);
     return data;
 };

@@ -15,9 +15,10 @@ import {
 import { Button } from "@/components/ui/button";
 import useAuth from "@/hooks/useAuth";
 import useCandidates from "@/hooks/useCandidates";
+import useFakeNews from "@/hooks/useFakeNews";
 import useVote from "@/hooks/useVote";
 import { Candidate } from "@/types/candidate";
-import { CheckCircle, Loader2, LogOut, Vote } from "lucide-react";
+import { CheckCircle, Loader2, LogOut, Newspaper, Vote } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -32,6 +33,7 @@ const Index = () => {
   const { vote, castVote, loading: voteLoading } = useVote();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { news, loading: newsLoading, generateFakeNews } = useFakeNews();
 
   const handleVote = (candidateId: string) => {
     castVote(candidateId);
@@ -80,10 +82,16 @@ const Index = () => {
                 Welcome, {user?.username}! Please select a candidate to vote.
               </p>
             </div>
-            <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button onClick={generateFakeNews} variant="outline" className="flex items-center gap-2">
+                  <Newspaper className="w-4 h-4" />
+                  Generate Fake News
+              </Button>
+              <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
         
@@ -162,6 +170,28 @@ const Index = () => {
               />
             </div>
           </div>
+        </div>
+
+        {/* Fake News Section */}
+        <div className="mt-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Fake News Ticker</h2>
+            <div className="bg-white rounded-lg shadow-sm border p-6 space-y-4">
+                {newsLoading ? (
+                    <div className="text-center">Loading news...</div>
+                ) : news.length === 0 ? (
+                    <div className="text-center text-gray-500 py-4">No news yet. Generate some!</div>
+                ) : (
+                    news.map(item => (
+                        <div key={item.id} className="border-b pb-4 last:border-b-0">
+                            <h3 className="font-semibold text-lg">{item.title}</h3>
+                            <p className="text-gray-700">{item.content}</p>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Regarding: {item.candidates.name} ({item.candidates.party}) - <time>{new Date(item.created_at).toLocaleString()}</time>
+                            </p>
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
       </div>
     </div>

@@ -28,6 +28,32 @@ export const login = async (cnp: string) => {
     return data;
 };
 
+// Fake News
+export interface FakeNews {
+  id: string;
+  created_at: string;
+  title: string;
+  content: string;
+  candidate_id: string;
+  candidates: Candidate; 
+}
+
+export const getFakeNews = async (): Promise<FakeNews[]> => {
+  const { data, error } = await supabase
+    .from('fake_news')
+    .select('*, candidates(*)')
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return data || [];
+};
+
+export const createFakeNews = async (news: { title: string, content: string, candidate_id: string }) => {
+    const { data, error } = await supabase.from('fake_news').insert(news).select();
+    if (error) throw new Error(error.message);
+    return data;
+};
+
 // Votes
 export const vote = async (voter_id: string, candidate_id: string) => {
     const { data, error } = await supabase.from('votes').insert([{ voter_id, candidate_id }]);

@@ -1,84 +1,45 @@
 import { CandidateCard } from "@/components/CandidateCard";
 import { CandidateDetail } from "@/components/CandidateDetail";
-import { CandidateForm } from "@/components/CandidateForm";
 import { PartyChart } from "@/components/PartyChart";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useCandidates } from "@/hooks/use-candidates";
-import { useToast } from "@/hooks/use-toast";
+import useAuth from "@/hooks/useAuth";
+import useCandidates from "@/hooks/useCandidates";
+import useVote from "@/hooks/useVote";
 import { Candidate } from "@/types/candidate";
-import { Loader2, Play, Plus, Users } from "lucide-react";
+import { CheckCircle, Loader2, LogOut, Vote } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
   
   const {
     candidates,
     loading,
     error,
-    createCandidate,
-    updateCandidate,
-    deleteCandidate,
-    generateFakeData,
   } = useCandidates();
+  const { vote, castVote, loading: voteLoading } = useVote();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const handleCreateCandidate = async (candidateData: Omit<Candidate, 'id'>) => {
-    try {
-      const newCandidate = await createCandidate(candidateData);
-      setIsFormOpen(false);
-      setSelectedCandidate(newCandidate);
-    } catch (error) {
-      console.error('Failed to create candidate:', error);
-    }
+  const handleVote = (candidateId: string) => {
+    castVote(candidateId);
   };
 
-  const handleUpdateCandidate = async (updatedCandidate: Candidate) => {
-    try {
-      const { id, ...updates } = updatedCandidate;
-      await updateCandidate(id, updates);
-      setSelectedCandidate(updatedCandidate);
-      setEditingCandidate(null);
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error('Failed to update candidate:', error);
-    }
-  };
-
-  const handleDeleteCandidate = async (candidateId: string) => {
-    try {
-      await deleteCandidate(candidateId);
-      if (selectedCandidate?.id === candidateId) {
-        setSelectedCandidate(null);
-      }
-    } catch (error) {
-      console.error('Failed to delete candidate:', error);
-    }
-  };
-
-  const handleEditCandidate = (candidate: Candidate) => {
-    setEditingCandidate(candidate);
-    setIsFormOpen(true);
-  };
-
-  const handleAddNew = () => {
-    setEditingCandidate(null);
-    setIsFormOpen(true);
-  };
-
-  const startFakeDataGeneration = () => {
-    if (isGenerating) return;
-    
-    setIsGenerating(true);
-    generateFakeData(5); // Generate 5 candidates
-    
-    // Reset generating state after a delay
-    setTimeout(() => {
-      setIsGenerating(false);
-    }, 3000);
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   if (loading) {
@@ -113,90 +74,92 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Candidate Directory
+                Electoral Platform
               </h1>
               <p className="text-gray-600 text-lg">
-                Browse and manage detailed information about political candidates
+                Welcome, {user?.username}! Please select a candidate to vote.
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={startFakeDataGeneration} 
-                disabled={isGenerating}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                {isGenerating ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Play className="w-4 h-4" />
-                )}
-                Generate Fake Data
-              </Button>
-              <Button onClick={handleAddNew} className="flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Add Candidate
-              </Button>
-            </div>
+            <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
           </div>
         </div>
         
+        {vote && (
+          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md mb-8" role="alert">
+            <div className="flex">
+              <div className="py-1"><CheckCircle className="h-5 w-5 text-green-500 mr-3" /></div>
+              <div>
+                <p className="font-bold">You have voted!</p>
+                <p>You voted for {vote.candidates.name}.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Master List */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-lg shadow-sm border p-6 h-[500px]">
-              <div className="flex items-center gap-2 mb-6">
-                <Users className="w-5 h-5 text-gray-600" />
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Candidates ({candidates.length})
-                </h2>
-                {isGenerating && (
-                  <div className="flex items-center gap-2 text-sm text-blue-600">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                    Generating...
-                  </div>
-                )}
-              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                Candidates ({candidates.length})
+              </h2>
               <div className="space-y-4 overflow-y-auto max-h-[calc(100%-80px)]">
                 {candidates.map((candidate) => (
-                  <CandidateCard
-                    key={candidate.id}
-                    candidate={candidate}
-                    isSelected={selectedCandidate?.id === candidate.id}
-                    onClick={() => setSelectedCandidate(candidate)}
-                  />
+                  <div key={candidate.id} className="relative">
+                    <CandidateCard
+                      candidate={candidate}
+                      isSelected={selectedCandidate?.id === candidate.id}
+                      onClick={() => setSelectedCandidate(candidate)}
+                    />
+                    {!vote && (
+                       <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="absolute top-2 right-2"
+                            disabled={voteLoading}
+                          >
+                            <Vote className="w-4 h-4 mr-2"/>
+                            Vote
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure you want to vote for {candidate.name}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. You can only vote once.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleVote(candidate.id)}>
+                              {voteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm Vote"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 ))}
                 {candidates.length === 0 && (
                   <div className="text-center text-gray-500 py-8">
-                    No candidates found. Add some candidates or generate fake data to get started.
+                    No candidates found.
                   </div>
                 )}
               </div>
             </div>
             
-            {/* Party Chart */}
             <PartyChart candidates={candidates} />
           </div>
           
-          {/* Detail View */}
           <div className="lg:col-span-3">
             <div className="h-full">
-              {isFormOpen ? (
-                <CandidateForm
-                  candidate={editingCandidate}
-                  onSave={editingCandidate ? handleUpdateCandidate : handleCreateCandidate}
-                  onCancel={() => {
-                    setIsFormOpen(false);
-                    setEditingCandidate(null);
-                  }}
-                />
-              ) : (
-                <CandidateDetail 
-                  candidate={selectedCandidate}
-                  onEdit={handleEditCandidate}
-                  onDelete={handleDeleteCandidate}
-                />
-              )}
+              <CandidateDetail 
+                candidate={selectedCandidate}
+              />
             </div>
           </div>
         </div>

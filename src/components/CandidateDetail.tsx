@@ -1,28 +1,25 @@
-
-import { Candidate } from "@/types/candidate";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Edit, Trash } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Candidate } from "@/types/candidate";
+import { Edit, Trash, User } from "lucide-react";
 
 interface CandidateDetailProps {
   candidate: Candidate | null;
-  onEdit?: (candidate: Candidate) => void;
-  onDelete?: (candidateId: string) => void;
 }
 
-export function CandidateDetail({ candidate, onEdit, onDelete }: CandidateDetailProps) {
+export function CandidateDetail({ candidate }: CandidateDetailProps) {
   if (!candidate) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -45,7 +42,7 @@ export function CandidateDetail({ candidate, onEdit, onDelete }: CandidateDetail
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-6 flex-1">
             <img
-              src={candidate.image}
+              src={candidate.image_url}
               alt={candidate.name}
               className="w-32 h-32 rounded-lg object-cover border-4 border-white shadow-lg"
             />
@@ -61,55 +58,6 @@ export function CandidateDetail({ candidate, onEdit, onDelete }: CandidateDetail
               </div>
             </div>
           </div>
-          
-          {(onEdit || onDelete) && (
-            <div className="flex gap-2">
-              {onEdit && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEdit(candidate)}
-                  className="flex items-center gap-2"
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit
-                </Button>
-              )}
-              
-              {onDelete && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:border-red-300"
-                    >
-                      <Trash className="w-4 h-4" />
-                      Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Candidate</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete <strong>{candidate.name}</strong>? 
-                        This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => onDelete(candidate.id)}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
-          )}
         </div>
       </CardHeader>
       <CardContent>

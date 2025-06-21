@@ -1,52 +1,50 @@
+import { supabase } from '@/lib/supabase';
 import { Candidate } from '@/types/candidate';
 
-const API_BASE_URL = 'https://backend-chdf.onrender.com/api';
+// Candidates
+export const getCandidates = async (): Promise<Candidate[]> => {
+  const { data, error } = await supabase.from('candidates').select('*');
+  if (error) throw new Error(error.message);
+  return data || [];
+};
 
-class ApiService {
-  async getCandidates(): Promise<Candidate[]> {
-    const response = await fetch(`${API_BASE_URL}/candidates`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch candidates');
+// Auth
+export const register = async (username: string, cnp: string) => {
+    const { data, error } = await supabase.from('voters').insert([{ username, cnp }]).select();
+    if (error) {
+        if (error.code === '23505') { 
+            throw new Error('A user with this CNP already exists.');
+        }
+        throw new Error(error.message);
     }
-    return response.json();
-  }
+    return data;
+};
 
-  async createCandidate(candidate: Omit<Candidate, 'id'>): Promise<Candidate> {
-    const response = await fetch(`${API_BASE_URL}/candidates`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(candidate),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to create candidate');
+export const login = async (cnp: string) => {
+    const { data, error } = await supabase.from('voters').select('*').eq('cnp', cnp).single();
+    if (error || !data) {
+        throw new Error('Invalid CNP or user not found.');
     }
-    return response.json();
-  }
+    return data;
+};
 
-  async updateCandidate(id: string, candidate: Partial<Candidate>): Promise<Candidate> {
-    const response = await fetch(`${API_BASE_URL}/candidates/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(candidate),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to update candidate');
+// Votes
+export const vote = async (voter_id: string, candidate_id: string) => {
+    const { data, error } = await supabase.from('votes').insert([{ voter_id, candidate_id }]);
+    if (error) {
+        if (error.code === '23505') {
+            throw new Error('You have already voted.');
+        }
+        throw new Error(error.message);
     }
-    return response.json();
-  }
+    return data;
+};
 
-  async deleteCandidate(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/candidates/${id}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) {
-      throw new Error('Failed to delete candidate');
+export const getVote = async (voter_id: string) => {
+    const { data, error } = await supabase.from('votes').select('*, candidates(*)').eq('voter_id', voter_id).single();
+    if (error) {
+        if (error.code === 'PGRST116') return null; // No rows found
+        throw new Error(error.message);
     }
-  }
-}
-
-export const apiService = new ApiService(); 
+    return data;
+}; 

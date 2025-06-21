@@ -1,7 +1,6 @@
-
-import { Candidate } from "@/types/candidate";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Candidate } from "@/types/candidate";
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -22,7 +21,7 @@ export function CandidateCard({ candidate, isSelected, onClick }: CandidateCardP
         <div className="flex items-center space-x-4">
           <div className="relative">
             <img
-              src={candidate.image}
+              src={candidate.image_url}
               alt={candidate.name}
               className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
             />

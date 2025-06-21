@@ -38,10 +38,11 @@ export interface FakeNews {
   candidates: Candidate; 
 }
 
-export const getFakeNews = async (): Promise<FakeNews[]> => {
+export const getFakeNewsForCandidate = async (candidateId: string): Promise<FakeNews[]> => {
   const { data, error } = await supabase
     .from('fake_news')
-    .select('*, candidates(*)')
+    .select('*')
+    .eq('candidate_id', candidateId)
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -54,23 +55,51 @@ export const createFakeNews = async (news: { title: string, content: string, can
     return data;
 };
 
+// Election Status
+export const getElectionStatus = async () => {
+    const { data, error } = await supabase.from('election_status').select('*').single();
+    if (error) throw new Error(error.message);
+    return data;
+};
+
+export const getLeaderboard = async (round: number) => {
+    const { data, error } = await supabase.rpc('get_leaderboard', { round_num: round });
+    if (error) throw new Error(error.message);
+    return data;
+};
+
+// Voters
+export const getVoters = async () => {
+    const { data, error } = await supabase.from('voters').select('id');
+    if (error) throw new Error(error.message);
+    return data;
+}
+
 // Votes
-export const vote = async (voter_id: string, candidate_id: string) => {
-    const { data, error } = await supabase.from('votes').insert([{ voter_id, candidate_id }]);
+export const vote = async (voter_id: string, candidate_id: string, round: number) => {
+    const { data, error } = await supabase.from('votes').insert([{ voter_id, candidate_id, round }]);
     if (error) {
         if (error.code === '23505') {
-            throw new Error('You have already voted.');
+            // This error can be ignored in the simulation as it means the user already voted.
+            console.warn(`User ${voter_id} has already voted in round ${round}.`);
+            return null;
         }
         throw new Error(error.message);
     }
     return data;
 };
 
-export const getVote = async (voter_id: string) => {
-    const { data, error } = await supabase.from('votes').select('*, candidates(*)').eq('voter_id', voter_id).single();
+export const getVote = async (voter_id: string, round: number) => {
+    const { data, error } = await supabase.from('votes').select('*, candidates(*)').eq('voter_id', voter_id).eq('round', round).single();
     if (error) {
-        if (error.code === 'PGRST116') return null; // No rows found
+        if (error.code === 'PGRST116') return null; // No rows found, user hasn't voted this round
         throw new Error(error.message);
     }
     return data;
+};
+
+// Reset
+export const resetElection = async () => {
+    const { error } = await supabase.rpc('reset_election');
+    if (error) throw new Error(error.message);
 }; 

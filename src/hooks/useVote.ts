@@ -9,9 +9,10 @@ interface Vote {
     voter_id: string;
     candidate_id: string;
     candidates: Candidate;
+    round: number;
 }
 
-const useVote = () => {
+const useVote = (round: number) => {
   const { user } = useAuth();
   const [vote, setVote] = useState<Vote | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,14 +21,14 @@ const useVote = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const voteData = await getVoteApi(user.id);
+      const voteData = await getVoteApi(user.id, round);
       setVote(voteData);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, round]);
 
   useEffect(() => {
     fetchVote();
@@ -40,7 +41,7 @@ const useVote = () => {
     }
     setLoading(true);
     try {
-      await voteApi(user.id, candidate_id);
+      await voteApi(user.id, candidate_id, round);
       await fetchVote(); // Refetch the vote to update the UI
       toast.success('Vote cast successfully!');
     } catch (error: any) {
@@ -48,7 +49,7 @@ const useVote = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, fetchVote]);
+  }, [user, fetchVote, round]);
 
   return { vote, loading, castVote, refetch: fetchVote };
 };

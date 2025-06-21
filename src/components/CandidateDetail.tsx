@@ -12,14 +12,52 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
+import { FakeNews, getFakeNewsForCandidate } from "@/services/api";
 import { Candidate } from "@/types/candidate";
 import { Edit, Trash, User } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface CandidateDetailProps {
   candidate: Candidate | null;
 }
 
 export function CandidateDetail({ candidate }: CandidateDetailProps) {
+  const [news, setNews] = useState<FakeNews[]>([]);
+  const [loadingNews, setLoadingNews] = useState(false);
+
+  useEffect(() => {
+    if (!candidate) {
+      setNews([]);
+      return;
+    }
+
+    const fetchNews = async () => {
+      setLoadingNews(true);
+      const newsData = await getFakeNewsForCandidate(candidate.id);
+      setNews(newsData);
+      setLoadingNews(false);
+    };
+
+    fetchNews();
+
+    const channel = supabase
+      .channel(`candidate-news-${candidate.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'fake_news', filter: `candidate_id=eq.${candidate.id}` },
+        (payload) => {
+          setNews(currentNews => [payload.new as FakeNews, ...currentNews]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
+  }, [candidate]);
+
   if (!candidate) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -71,17 +109,22 @@ export function CandidateDetail({ candidate }: CandidateDetailProps) {
         </div>
         
         <div className="mt-8 pt-6 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Quick Facts</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-sm font-medium text-blue-800">Party Affiliation</div>
-              <div className="text-blue-900 font-semibold">{candidate.party}</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">Fake News About {candidate.name}</h3>
+          {loadingNews ? (
+            <p>Loading news...</p>
+          ) : news.length === 0 ? (
+            <p className="text-gray-500">No fake news found for this candidate.</p>
+          ) : (
+            <div className="space-y-4 max-h-60 overflow-y-auto">
+              {news.map(item => (
+                <div key={item.id} className="border-b pb-2 last:border-b-0">
+                  <h4 className="font-semibold">{item.title}</h4>
+                  <p className="text-sm text-gray-600">{item.content}</p>
+                   <p className="text-xs text-gray-400 mt-1"><time>{new Date(item.created_at).toLocaleString()}</time></p>
+                </div>
+              ))}
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-sm font-medium text-gray-600">Candidate Status</div>
-              <div className="text-gray-900 font-semibold">Active</div>
-            </div>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>

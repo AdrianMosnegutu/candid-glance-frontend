@@ -72,7 +72,7 @@ export const getLeaderboard = async (round: number) => {
 
 // Voters
 export const getVoters = async () => {
-    const { data, error } = await supabase.from('voters').select('id');
+    const { data, error } = await supabase.from('voters').select('id').limit(1000);
     if (error) throw new Error(error.message);
     return data;
 }

@@ -1,50 +1,61 @@
-
-import { useState, useRef } from "react";
-import { Candidate } from "@/types/candidate";
 import { CandidateCard } from "@/components/CandidateCard";
 import { CandidateDetail } from "@/components/CandidateDetail";
 import { CandidateForm } from "@/components/CandidateForm";
 import { PartyChart } from "@/components/PartyChart";
 import { Button } from "@/components/ui/button";
-import { Plus, Play, Square, Users } from "lucide-react";
-import candidatesData from "@/data/candidates.json";
-import { generateFakeCandidate } from "@/utils/fakeDataGenerator";
+import { useCandidates } from "@/hooks/use-candidates";
 import { useToast } from "@/hooks/use-toast";
+import { Candidate } from "@/types/candidate";
+import { Loader2, Play, Plus, Users } from "lucide-react";
+import { useState } from "react";
 
 const Index = () => {
-  const [candidates, setCandidates] = useState<Candidate[]>(candidatesData);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const generationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  
+  const {
+    candidates,
+    loading,
+    error,
+    createCandidate,
+    updateCandidate,
+    deleteCandidate,
+    generateFakeData,
+  } = useCandidates();
 
-  const handleCreateCandidate = (candidateData: Omit<Candidate, 'id'>) => {
-    const newCandidate: Candidate = {
-      ...candidateData,
-      id: Date.now().toString()
-    };
-    setCandidates(prev => [...prev, newCandidate]);
-    setIsFormOpen(false);
-    setSelectedCandidate(newCandidate);
+  const handleCreateCandidate = async (candidateData: Omit<Candidate, 'id'>) => {
+    try {
+      const newCandidate = await createCandidate(candidateData);
+      setIsFormOpen(false);
+      setSelectedCandidate(newCandidate);
+    } catch (error) {
+      console.error('Failed to create candidate:', error);
+    }
   };
 
-  const handleUpdateCandidate = (updatedCandidate: Candidate) => {
-    setCandidates(prev => 
-      prev.map(candidate => 
-        candidate.id === updatedCandidate.id ? updatedCandidate : candidate
-      )
-    );
-    setSelectedCandidate(updatedCandidate);
-    setEditingCandidate(null);
-    setIsFormOpen(false);
+  const handleUpdateCandidate = async (updatedCandidate: Candidate) => {
+    try {
+      const { id, ...updates } = updatedCandidate;
+      await updateCandidate(id, updates);
+      setSelectedCandidate(updatedCandidate);
+      setEditingCandidate(null);
+      setIsFormOpen(false);
+    } catch (error) {
+      console.error('Failed to update candidate:', error);
+    }
   };
 
-  const handleDeleteCandidate = (candidateId: string) => {
-    setCandidates(prev => prev.filter(candidate => candidate.id !== candidateId));
-    if (selectedCandidate?.id === candidateId) {
-      setSelectedCandidate(null);
+  const handleDeleteCandidate = async (candidateId: string) => {
+    try {
+      await deleteCandidate(candidateId);
+      if (selectedCandidate?.id === candidateId) {
+        setSelectedCandidate(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete candidate:', error);
     }
   };
 
@@ -62,39 +73,38 @@ const Index = () => {
     if (isGenerating) return;
     
     setIsGenerating(true);
-    setCandidates([]); // Clear existing candidates
-    setSelectedCandidate(null);
+    generateFakeData(5); // Generate 5 candidates
     
-    toast({
-      title: "Generating fake data",
-      description: "Adding new candidates every 2 seconds...",
-    });
-
-    generationIntervalRef.current = setInterval(() => {
-      const fakeCandidate = generateFakeCandidate();
-      const newCandidate: Candidate = {
-        ...fakeCandidate,
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
-      };
-      
-      setCandidates(prev => [...prev, newCandidate]);
-    }, 2000);
+    // Reset generating state after a delay
+    setTimeout(() => {
+      setIsGenerating(false);
+    }, 3000);
   };
 
-  const stopFakeDataGeneration = () => {
-    if (!isGenerating) return;
-    
-    setIsGenerating(false);
-    if (generationIntervalRef.current) {
-      clearInterval(generationIntervalRef.current);
-      generationIntervalRef.current = null;
-    }
-    
-    toast({
-      title: "Generation stopped",
-      description: "Fake data generation has been stopped.",
-    });
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span className="text-lg">Loading candidates...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Data</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -116,17 +126,12 @@ const Index = () => {
                 variant="outline"
                 className="flex items-center gap-2"
               >
-                <Play className="w-4 h-4" />
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
                 Generate Fake Data
-              </Button>
-              <Button 
-                onClick={stopFakeDataGeneration} 
-                disabled={!isGenerating}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Square className="w-4 h-4" />
-                Stop Generation
               </Button>
               <Button onClick={handleAddNew} className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
@@ -161,6 +166,11 @@ const Index = () => {
                     onClick={() => setSelectedCandidate(candidate)}
                   />
                 ))}
+                {candidates.length === 0 && (
+                  <div className="text-center text-gray-500 py-8">
+                    No candidates found. Add some candidates or generate fake data to get started.
+                  </div>
+                )}
               </div>
             </div>
             

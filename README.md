@@ -1,8 +1,25 @@
-# Welcome to your Lovable project
+# Candidate Management System
+
+A full-stack candidate management application with real-time updates and persistent data storage.
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/1e29fd88-d68e-4e51-bd3e-22435db6faa5
+
+## Features
+
+- **Real-time updates** via WebSocket connections
+- **Persistent data storage** using Express.js backend
+- **Async fake data generation** through WebSocket
+- **Modern UI** built with React, TypeScript, and shadcn/ui
+- **Responsive design** with Tailwind CSS
+
+## Architecture
+
+- **Frontend**: React + TypeScript + Vite
+- **Backend**: Express.js + Socket.io
+- **Database**: JSON file storage (lowdb)
+- **Real-time**: WebSocket communication
 
 ## How can I edit this code?
 
@@ -29,10 +46,19 @@ git clone <YOUR_GIT_URL>
 # Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
+# Step 3: Install frontend dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Install backend dependencies.
+cd server
+npm i
+cd ..
+
+# Step 5: Start the backend server (in one terminal).
+cd server
+npm run dev
+
+# Step 6: Start the frontend development server (in another terminal).
 npm run dev
 ```
 
@@ -54,11 +80,36 @@ npm run dev
 
 This project is built with:
 
+### Frontend
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+- Socket.io Client
+- React Query
+
+### Backend
+- Express.js
+- Socket.io
+- lowdb (JSON database)
+- CORS
+- UUID generation
+
+## API Endpoints
+
+- `GET /api/candidates` - Get all candidates
+- `POST /api/candidates` - Create a new candidate
+- `PUT /api/candidates/:id` - Update a candidate
+- `DELETE /api/candidates/:id` - Delete a candidate
+
+## WebSocket Events
+
+- `generateFakeData` - Generate fake candidates
+- `candidateAdded` - New candidate created
+- `candidateUpdated` - Candidate updated
+- `candidateDeleted` - Candidate deleted
+- `fakeDataGenerationComplete` - Fake data generation finished
 
 ## How can I deploy this project?
 

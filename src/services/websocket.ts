@@ -8,7 +8,8 @@ class WebSocketService {
   connect() {
     if (this.socket?.connected) return;
 
-    this.socket = io('http://localhost:3001');
+    const wsUrl = 'https://backend-chdf.onrender.com';
+    this.socket = io(wsUrl);
 
     this.socket.on('connect', () => {
       console.log('Connected to WebSocket server');

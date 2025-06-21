@@ -13,15 +13,16 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const server = createServer(app);
+const allowedOrigins = ["https://frontend-ntcz.onrender.com"];
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:8081", // Vite dev server
+    origin: allowedOrigins,
     methods: ["GET", "POST"]
   }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 // Log all REST API calls
@@ -228,7 +229,8 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`WebSocket server ready for connections`);
+  console.log(`Accessible at http://10.220.16.244:${PORT}`);
 }); 

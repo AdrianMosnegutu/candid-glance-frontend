@@ -32,6 +32,7 @@ const Index = () => {
   const totalRound1Votes = round1FinalLeaderboard.reduce((acc, curr) => acc + curr.vote_count, 0);
 
   const electionWinner = round === 2 && !isCampaignRunning && totalVotes > 0 && leaderboard.length > 0 ? leaderboard[0] : null;
+  const showChinteniMessage = electionWinner && leaderboard.length === 2 && totalVotes > 0 && ((leaderboard[0].vote_count - leaderboard[1].vote_count) / totalVotes) * 100 > 5;
 
   const handleLogout = () => {
     logout();
@@ -100,6 +101,7 @@ const Index = () => {
         </div>
 
         {electionWinner && (
+          <>
             <div className="bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 p-1 rounded-lg shadow-lg mb-8">
                 <div className="bg-white p-8 rounded-lg">
                     <div className="text-center">
@@ -115,6 +117,14 @@ const Index = () => {
                     </div>
                 </div>
             </div>
+            {showChinteniMessage && (
+              <div className="text-center -mt-4 mb-8">
+                  <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+                      "Felicitari, te muti in Chinteni!"
+                  </p>
+              </div>
+            )}
+          </>
         )}
 
         {round === 2 && !electionWinner && (
